@@ -7,7 +7,7 @@ with types;
     default = { };
     description = ''
       This is a raw command and should not be used,
-      It's what all other healtchecks end up to be.
+      It's what all other healthchecks end up to be.
       Use `localCommands` or `remoteCommands` if you want to run a script.
     '';
 
