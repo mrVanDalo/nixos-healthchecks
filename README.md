@@ -1,8 +1,8 @@
 # NixOS health checks
 
-NixOS flake to write health checks as options, intended to be written right next to the service definitions
-to verify right after deployment or whenever you like if your
-services are running correctly.
+NixOS flake to write health checks as options, intended to be written right next
+to the service definitions to verify right after deployment or whenever you like
+if your services are running correctly.
 
 ## How to run
 
@@ -12,7 +12,8 @@ nix run .#healthchecks
 
 ## How to set up with flake parts
 
-First you have to import the `healthchecks.flakeModule` and the `healthchecks.nixosModules.default`.
+First you have to import the `healthchecks.flakeModule` and the
+`healthchecks.nixosModules.default`.
 
 ```nix
 {
@@ -70,7 +71,7 @@ healthchecks.http.nextcloud = {
 };
 ```
 
-or define  healthchecks to check if a port is actually closed
+or define healthchecks to check if a port is actually closed
 
 ```nix
 healthchecks.closed.public.host = "example.com";
