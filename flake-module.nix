@@ -11,7 +11,7 @@
     }:
     with lib;
     {
-      apps.healthcheck = {
+      apps.healthchecks = {
         type = "app";
         program =
           let
@@ -32,7 +32,7 @@
                     { title, script }:
                     ''
                       echo "${title}"
-                      ${script}
+                      ${pkgs.moreutils}/bin/chronic ${script}
                     ''
                   ) groupConfiguration)
                   # todo handle exit code and stderr and such properly
