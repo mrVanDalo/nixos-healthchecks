@@ -9,6 +9,8 @@ with types;
     description = ''
       service -> command
       command to run on local machine to test remote server.
+      exit code 0 will result in success
+      all other exit codes will result in failure
     '';
   };
 

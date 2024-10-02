@@ -56,10 +56,21 @@ with types;
           nameValuePair (interfaceName + serviceName) {
             title = "verify ${interfaceName} ports are closed for ${serviceName}";
             script = pkgs.writers.writeBash "${interfaceName}-${serviceName}" ''
+              # Run the rustscan command and capture the output
+              output=$(
               ${pkgs.rustscan}/bin/rustscan \
                   --ports ${concatStringsSep "," (map toString ports)} \
                   --addresses ${host} \
                   --greppable
+                  2>&1)
+
+              # Check if there was any output
+              if [ -n "$output" ]; then
+                  echo "$output"
+                  exit 1
+              else
+                  exit 0
+              fi
             '';
           };
 

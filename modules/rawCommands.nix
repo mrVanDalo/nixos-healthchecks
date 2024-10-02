@@ -9,6 +9,9 @@ with types;
       This is a raw command and should not be used,
       It's what all other healthchecks end up to be.
       Use `localCommands` or `remoteCommands` if you want to run a script.
+
+      exit code 0 will result in success
+      all other exit codes will result in failure
     '';
 
     # group -> topic -> script-definition

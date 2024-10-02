@@ -33,8 +33,16 @@ with types;
             Expected response code
           '';
         };
+        notExpectedContent = mkOption {
+          type = nullOr str;
+          default = null;
+          description = ''
+            Not expected string in the response
+          '';
+        };
         expectedContent = mkOption {
           type = nullOr str;
+          default = null;
           description = ''
             Expected string in the response
           '';
@@ -47,34 +55,53 @@ with types;
 
     healthchecks.rawCommands.http =
       let
-        curl = lib.getExe pkgs.curl;
-        grep = lib.getExe pkgs.gnugrep;
-        # fixme expected Content checks seem not to work
-        scriptWithExpectedContent = url: responseCode: expectedContent: ''
-          if ${curl} -s -o /dev/null -w "%{http_code}" ${url} | ${grep} -q "${toString responseCode}"; then
-            if ${curl} -s ${url} | ${grep} -q "${expectedContent}"; then
-              echo -n ""
-            else
-              echo " [Fail] ${url} did return ${toString responseCode}, but did not contain the string '${expectedContent}'."
-            fi
-          else
-            echo " [Fail] ${url} did not return ${toString responseCode}."
-          fi
-        '';
-
-        scriptWithoutExpectedContent = url: responseCode: ''
-          if ${curl} -s -o /dev/null -w "%{http_code}" ${url} | ${grep} -q "${toString responseCode}"; then
-              echo -n ""
-          else
-            echo " [Fail] ${url} did not return ${toString responseCode}."
-          fi
-        '';
         script =
-          url: responeCode: expectedContent:
-          if (expectedContent == null) then
-            scriptWithExpectedContent url responeCode expectedContent
-          else
-            scriptWithoutExpectedContent url responeCode;
+          url: responeCode: expectedContent: notExpectedContent:
+          pkgs.writers.writePython3 "test"
+            {
+              libraries = [ pkgs.python3Packages.requests ];
+              flakeIgnore = [
+                "E302"
+                "E305"
+                "E501"
+                "E303"
+              ];
+            }
+            ''
+              import requests
+              import sys
+
+              def ensure_http_prefix(url):
+                  if not url.startswith(("http://", "https://")):
+                      return "http://" + url
+                  return url
+
+              try:
+                  response = requests.get(ensure_http_prefix("${url}"))
+              except requests.exceptions.RequestException as e:
+                  print(f"Request failed: {e}")
+                  sys.exit(1)
+
+              if response.status_code != ${toString responeCode}:
+                  print(f"Received unexpected status code: {response.status_code}")
+                  sys.exit(1)
+
+              response_text = response.text
+
+              ${optionalString (expectedContent != null) ''
+                if "${expectedContent}" not in response_text:
+                    print("'${expectedContent}' does not appear in response body.")
+                    sys.exit(1)
+              ''}
+
+              ${optionalString (notExpectedContent != null) ''
+                if "${notExpectedContent}" in response_text:
+                    print("'${notExpectedContent}' does appear in response body.")
+                    sys.exit(1)
+              ''}
+
+              sys.exit(0)
+            '';
 
       in
       mapAttrs' (
@@ -83,10 +110,11 @@ with types;
           url,
           responseCode,
           expectedContent,
+          notExpectedContent,
         }:
         nameValuePair service {
           title = "verify http for ${service}";
-          script = pkgs.writers.writeBash "http-${service}" (script url responseCode expectedContent);
+          script = (script url responseCode expectedContent notExpectedContent);
         }
 
       ) config.healthchecks.http;
