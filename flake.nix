@@ -21,6 +21,12 @@
         "aarch64-darwin"
         "x86_64-darwin"
       ];
+      perSystem =
+        { pkgs, self', ... }:
+        {
+          packages.default = self'.packages.script-exec;
+          packages.script-exec = pkgs.callPackage ./pkgs/script-exec { };
+        };
       flake = {
         # The usual flake attributes can be defined here, including system-
         # agnostic ones like nixosModule and system-enumerating ones, although

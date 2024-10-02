@@ -1,4 +1,4 @@
-{ self, ... }:
+{ self, inputs, ... }:
 {
   imports = [ ];
 
@@ -7,9 +7,13 @@
       pkgs,
       self',
       lib,
+      system,
       ...
     }:
     with lib;
+    let
+      scriptExec = pkgs.callPackage ./pkgs/script-exec { };
+    in
     {
       apps.healthchecks = {
         type = "app";
@@ -31,11 +35,9 @@
                     topic:
                     { title, script }:
                     ''
-                      echo "${title}"
-                      ${pkgs.moreutils}/bin/chronic ${script}
+                      ${scriptExec}/bin/script-exec --title "${title}" --emoji ${script}
                     ''
                   ) groupConfiguration)
-                  # todo handle exit code and stderr and such properly
                 ) commandOptions;
 
               in

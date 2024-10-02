@@ -8,6 +8,7 @@
       projectRootFile = ".git/config";
       programs.nixfmt.enable = true;
       programs.deno.enable = true;
+      programs.rustfmt.enable = true;
     };
   };
 }
