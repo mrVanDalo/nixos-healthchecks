@@ -8,6 +8,12 @@ if your services are running correctly.
 
 ```shell
 nix run .#healthchecks
+┌────────────┐
+│ my-machine │
+└────────────┘
+✅ verify public ports are closed for opentelemetry
+✅ verify http for nextcloud
+...
 ```
 
 ## How to set up with flake parts
@@ -46,7 +52,7 @@ First you have to import the `healthchecks.flakeModule` and the
           { pkgs, system, ... }:
           with pkgs;
           {
-            nixosConfigurations.my-tool = lib.nixosSetup {
+            nixosConfigurations.my-machine = lib.nixosSetup {
               inherit system pkgs;
               modules = [
                 ./configuration.nix
