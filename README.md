@@ -8,17 +8,49 @@ if your services are running correctly.
 
 ```shell
 nix run .#healthchecks
-┌────────────┐
-│ my-machine │
-└────────────┘
+🖥️ myMachine
+✅ verify public ports are closed for opentelemetry
+✅ verify http for nextcloud
+...
+
+🖥️ myServer
 ✅ verify public ports are closed for opentelemetry
 ✅ verify http for nextcloud
 ...
 ```
 
+## How to define checks
+
+You can define checks using the (newly introduced) `healthchecks`
+[NixOS Option](https://search.nixos.org/options).
+
+### Check the http responses
+
+```nix
+healthchecks.http.nextcloud = {
+  url = "https://example.com/login";
+  expectedContent = "Login";
+};
+```
+
+### check if a port is actually closed
+
+```nix
+healthchecks.closed.public.host = "example.com";
+healthchecks.closed.public.ports.opentelemetry = [ 4317 ];
+```
+
+### custom command
+
+```nix
+healthchecks.localCommand.test = ''
+echo "this is a test"
+'';
+```
+
 ## How to set up with flake parts
 
-First you have to import the `healthchecks.flakeModule` and the
+You have to import the `healthchecks.flakeModule` and the
 `healthchecks.nixosModules.default`.
 
 ```nix
@@ -66,28 +98,4 @@ First you have to import the `healthchecks.flakeModule` and the
       }
     );
 }
-```
-
-Now you can define healthchecks to check the http responses
-
-```nix
-healthchecks.http.nextcloud = {
-  url = "https://example.com/login";
-  expectedContent = "Login";
-};
-```
-
-or define healthchecks to check if a port is actually closed
-
-```nix
-healthchecks.closed.public.host = "example.com";
-healthchecks.closed.public.ports.opentelemetry = [ 4317 ];
-```
-
-or define a healthcheck with a custom command
-
-```nix
-healthchecks.localCommand.test = ''
-echo "this is a test"
-'';
 ```
