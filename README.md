@@ -6,7 +6,7 @@ if your services are running correctly.
 
 ## How to run
 
-```shell
+```
 nix run .#healthchecks
 🖥️ myMachine
 ✅ verify public ports are closed for opentelemetry
