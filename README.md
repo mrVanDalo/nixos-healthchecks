@@ -43,10 +43,16 @@ healthchecks.closed.public.ports.opentelemetry = [ 4317 ];
 ### custom command
 
 ```nix
-healthchecks.localCommand.test = ''
-echo "this is a test"
+healthchecks.localCommand.bashTest = pkgs.writers.writeBash "test" ''
+  echo "this is a bash test"
+'';
+healthchecks.localCommand.pythonTest = pkgs.writers.writePython "test" {} ''
+  print("this is a python test")
 '';
 ```
+
+**Failure** or **Success** is decided on **exit code** of the script. The output
+of the command will only be printed if the **exit code** is not 0.
 
 ## How to set up with flake parts
 
