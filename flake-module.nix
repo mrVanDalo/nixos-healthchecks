@@ -37,7 +37,7 @@
                     topic:
                     { title, script }:
                     ''
-                      ${scriptExec}/bin/script-exec --title "${title}" ${optionalString useEmoji "--emoji"} ${script}
+                      ${scriptExec}/bin/script-exec --title "${title}" ${optionalString useEmoji "--emoji"} --time ${script}
                     ''
                   ) groupConfiguration)
                 ) commandOptions;
