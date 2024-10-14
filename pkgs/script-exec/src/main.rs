@@ -4,6 +4,7 @@ use log::debug;
 use std::io::{self, Write};
 use std::path::Path;
 use std::process::{exit, Command};
+use std::time::Instant;
 
 /// Run healthcheck commands and make them look pretty.
 #[derive(Parser, Debug)]
@@ -45,16 +46,17 @@ fn run_script(script: &str, title: &str, use_emoji: bool) {
     print!("{} {}", wait, title);
     io::stdout().flush().unwrap();
 
+    let start = Instant::now();
     let result = Command::new(script)
         .output()
         .expect("Failed to execute script");
-
+    let duration = start.elapsed();
     print!("\r\x1B[2K"); // \x1B[2K clears the entire line
 
     if result.status.success() {
-        println!("{} {}", ok, title);
+        println!("{} {} [{:.2?}s]", ok, title, duration.as_secs_f64());
     } else {
-        println!("{} {}", fail, title);
+        println!("{} {} [{:.2?}s]", fail, title, duration.as_secs_f64());
         println!("Output:\n{}", String::from_utf8_lossy(&result.stdout));
         println!("Error:\n{}", String::from_utf8_lossy(&result.stderr));
     }
