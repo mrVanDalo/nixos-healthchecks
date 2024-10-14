@@ -1,9 +1,9 @@
-use std::path::Path;
-use std::process::{exit, Command};
-
 use clap::Parser;
 use env_logger;
 use log::debug;
+use std::io::{self, Write};
+use std::path::Path;
+use std::process::{exit, Command};
 
 /// Run healthcheck commands and make them look pretty.
 #[derive(Parser, Debug)]
@@ -25,16 +25,16 @@ struct Args {
     path: String,
 }
 
-fn exit_code_visualization(use_emoji: bool) -> (&'static str, &'static str) {
+fn exit_code_visualization(use_emoji: bool) -> (&'static str, &'static str, &'static str) {
     if use_emoji {
-        ("✅", "❌")
+        ("⏳", "✅", "❌")
     } else {
-        ("[ OK ]", "[Fail]")
+        ("[Wait]", "[ OK ]", "[Fail]")
     }
 }
 
 fn run_script(script: &str, title: &str, use_emoji: bool) {
-    let (ok, fail) = exit_code_visualization(use_emoji);
+    let (wait, ok, fail) = exit_code_visualization(use_emoji);
 
     if !Path::new(script).exists() {
         println!("{} {}", fail, title);
@@ -42,9 +42,14 @@ fn run_script(script: &str, title: &str, use_emoji: bool) {
         exit(1);
     }
 
+    print!("{} {}", wait, title);
+    io::stdout().flush().unwrap();
+
     let result = Command::new(script)
         .output()
         .expect("Failed to execute script");
+
+    print!("\r\x1B[2K"); // \x1B[2K clears the entire line
 
     if result.status.success() {
         println!("{} {}", ok, title);
