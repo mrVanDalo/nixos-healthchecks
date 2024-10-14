@@ -18,6 +18,10 @@ struct Args {
     #[arg(long, default_value_t = false)]
     emoji: bool,
 
+    /// measure script execution and show it
+    #[arg(long, default_value_t = false)]
+    time: bool,
+
     /// title to be printed
     #[arg(short, long)]
     title: Option<String>,
@@ -29,16 +33,23 @@ struct Args {
 /// PrettyPrinter
 /// containing all the information needed to print user-friendly output.
 struct PrettyPrinter {
+    /// title of the execution
+    title: String,
+
     /// use emojis in printout or not
     use_emoji: bool,
 
-    /// title of the execution
-    title: String,
+    /// show execution time or now
+    show_time: bool,
 }
 
 impl PrettyPrinter {
-    fn new(title: String, use_emoji: bool) -> Self {
-        Self { use_emoji, title }
+    fn new(title: String, use_emoji: bool, show_time: bool) -> Self {
+        Self {
+            title,
+            use_emoji,
+            show_time,
+        }
     }
 
     /// decision function on what to print
@@ -64,14 +75,22 @@ impl PrettyPrinter {
     fn success(&self, duration: Duration) {
         let (_, ok, _) = self.exit_code_visualization(self.use_emoji);
         print!("\r\x1B[2K"); // \x1B[2K clears the entire line
-        println!("{} {} [{:.2?}s]", ok, self.title, duration.as_secs_f64());
+        if self.show_time {
+            println!("{} {} [{:.2?}s]", ok, self.title, duration.as_secs_f64());
+        } else {
+            println!("{} {}", ok, self.title);
+        }
     }
 
     /// print failure line
     fn failure(&self, duration: Duration) {
         let (_, _, fail) = self.exit_code_visualization(self.use_emoji);
         print!("\r\x1B[2K"); // \x1B[2K clears the entire line
-        println!("{} {} [{:.2?}s]", fail, self.title, duration.as_secs_f64());
+        if self.show_time {
+            println!("{} {} [{:.2?}s]", fail, self.title, duration.as_secs_f64());
+        } else {
+            println!("{} {}", fail, self.title);
+        }
     }
 }
 
@@ -109,8 +128,13 @@ fn main() {
     debug!("Title: {:?}", args.title);
     debug!("Script path: {}", args.path);
     debug!("Emojis enabled : {}", args.emoji);
+    debug!("Time measurement is enabled : {}", args.time);
 
-    let pretty_printer = PrettyPrinter::new(args.title.unwrap_or(args.path.clone()), args.emoji);
+    let pretty_printer = PrettyPrinter::new(
+        args.title.unwrap_or(args.path.clone()),
+        args.emoji,
+        args.time,
+    );
 
     run_script(args.path.as_str(), pretty_printer);
 }

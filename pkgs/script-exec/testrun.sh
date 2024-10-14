@@ -13,3 +13,7 @@ cargo run --bin script-exec -- ./examples/failing.sh --title "should fail" --emo
 cargo run --bin script-exec -- ./examples/failing.sh --emoji
 cargo run --bin script-exec -- ./examples/doesnot-exist.sh --title "does not exist" --emoji
 cargo run --bin script-exec -- ./examples/doesnot-exist.sh --emoji
+
+cargo run --bin script-exec -- ./examples/success.sh --title "it should work" --emoji --time
+cargo run --bin script-exec -- ./examples/failing.sh --title "should fail" --emoji --time
+cargo run --bin script-exec -- ./examples/doesnot-exist.sh --title "does not exist" --emoji --time
