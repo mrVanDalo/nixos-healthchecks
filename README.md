@@ -93,7 +93,7 @@ You have to import the `healthchecks.flakeModule` and the
               ./configuration.nix
               
               # 2. import healthchecks nixosModule
-              self.nixosModules.default
+              healthchecks.nixosModules.default
             ];
           };
         }; 
