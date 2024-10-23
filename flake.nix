@@ -9,26 +9,38 @@
   };
 
   outputs =
-    inputs@{ flake-parts, ... }:
+    inputs@{ self, flake-parts, ... }:
     flake-parts.lib.mkFlake { inherit inputs; } {
       imports = [
         ./nix/formatter.nix
         ./nix/devshells.nix
+        ./flake-module.nix
       ];
       systems = [
         "x86_64-linux"
         "aarch64-linux"
       ];
       perSystem =
-        { pkgs, self', ... }:
+        {
+          pkgs,
+          self',
+          lib,
+          system,
+          ...
+        }:
         {
           packages.default = self'.packages.script-exec;
           packages.script-exec = pkgs.callPackage ./pkgs/script-exec { };
         };
       flake = {
-        # The usual flake attributes can be defined here, including system-
-        # agnostic ones like nixosModule and system-enumerating ones, although
-        # those are more easily expressed in perSystem.
+        nixosConfigurations.example = inputs.nixpkgs.lib.nixosSystem {
+          #inherit system pkgs;
+          system = "x86_64-linux";
+          modules = [
+            ./examples
+            self.nixosModules.default
+          ];
+        };
         flakeModule = ./flake-module.nix;
         nixosModules.default = {
           imports = [
