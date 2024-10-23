@@ -86,21 +86,17 @@ You have to import the `healthchecks.flakeModule` and the
         # 1. import healthchecks flakeModule
         imports = [ healthchecks.flakeModule ];
 
-        perSystem =
-          { pkgs, system, ... }:
-          with pkgs;
-          {
-            nixosConfigurations.my-machine = lib.nixosSetup {
-              inherit system pkgs;
-              modules = [
-                ./configuration.nix
-
-                # 2. import healthchecks nixosModule
-                healthchecks.nixosModules.default
-
-              ];
-            };
+        flake = {
+          nixosConfigurations.example = inputs.nixpkgs.lib.nixosSystem {
+            system = "x86_64-linux";
+            modules = [
+              ./configuration.nix
+              
+              # 2. import healthchecks nixosModule
+              self.nixosModules.default
+            ];
           };
+        }; 
       }
     );
 }
