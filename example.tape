@@ -64,14 +64,16 @@ Require nix
 
 Set Shell "bash"
 
-Set FontSize 20
-Set Width 1200
-Set Height 600
+Set FontSize 26
+Set Width 950
+Set Height 400
+Set Padding 10
 Set LoopOffset 1%
+Set Theme "Gruvbox Light"
 
 Sleep 500ms
 Type "nix run .#healthchecks"
 Sleep 500ms
 Enter
-Sleep 30.0s
+Sleep 15.0s
 
