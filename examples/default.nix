@@ -4,8 +4,9 @@
   healthchecks.closed.public.host = "example.com";
 
   imports = [
-    ./netdata.nix
-    ./grafana.nix
+    ./gitea.nix
+    ./nextcloud.nix
+    ./syncthing.nix
   ];
 
 }

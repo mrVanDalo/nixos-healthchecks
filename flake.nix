@@ -33,7 +33,7 @@
           packages.script-exec = pkgs.callPackage ./pkgs/script-exec { };
         };
       flake = {
-        nixosConfigurations.example = inputs.nixpkgs.lib.nixosSystem {
+        nixosConfigurations.my-example-machine = inputs.nixpkgs.lib.nixosSystem {
           #inherit system pkgs;
           system = "x86_64-linux";
           modules = [
