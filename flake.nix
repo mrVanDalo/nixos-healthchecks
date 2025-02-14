@@ -29,7 +29,7 @@
           ...
         }:
         {
-          packages.default = self'.packages.script-exec;
+          packages.default = self'.packages.healthchecks;
           packages.script-exec = pkgs.callPackage ./pkgs/script-exec { };
         };
       flake = {
