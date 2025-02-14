@@ -15,61 +15,70 @@
       scriptExec = pkgs.callPackage ./pkgs/script-exec { };
     in
     {
-      apps.healthchecks = {
-        type = "app";
-        program =
-          let
-            nixosConfigurationsToVerify = filterAttrs (
-              machine: configuration: builtins.hasAttr "healthchecks" configuration.options
-            ) self.nixosConfigurations;
+      apps =
+        let
+          nixosConfigurationsToVerify = filterAttrs (
+            machine: configuration: builtins.hasAttr "healthchecks" configuration.options
+          ) self.nixosConfigurations;
 
-            useEmoji = true;
+          useEmoji = true;
 
-            rawCommands =
-              nixosConfiguration:
-              let
+          rawCommands =
+            nixosConfiguration:
+            let
 
-                commandOptions = nixosConfiguration.options.healthchecks.rawCommands.value;
+              commandOptions = nixosConfiguration.options.healthchecks.rawCommands.value;
 
-                commandScripts = mapAttrsToList (
-                  group: groupConfiguration:
-                  (mapAttrsToList (
-                    topic:
-                    { title, script }:
-                    ''
-                      ${scriptExec}/bin/script-exec --title "${title}" ${optionalString useEmoji "--emoji"} --time ${script}
-                    ''
-                  ) groupConfiguration)
-                ) commandOptions;
+              commandScripts = mapAttrsToList (
+                group: groupConfiguration:
+                (mapAttrsToList (
+                  topic:
+                  { title, script }:
+                  ''
+                    ${scriptExec}/bin/script-exec --title "${title}" ${optionalString useEmoji "--emoji"} --time ${script}
+                  ''
+                ) groupConfiguration)
+              ) commandOptions;
 
-              in
-              flatten commandScripts;
+            in
+            flatten commandScripts;
 
-            verify =
-              machineName: nixosConfiguration:
-              let
-                machineHeader =
-                  if useEmoji then
-                    ''
-                      echo ""
-                      echo "🖥️ ${machineName}"
-                    ''
-                  else
-                    ''
-                      echo ""
-                      echo "{Machine} ${machineName}"
-                    '';
-              in
-              ''
-                ${machineHeader}
-                ${concatStringsSep "\n" (rawCommands nixosConfiguration)}
-              '';
+          verify =
+            machineName: nixosConfiguration:
+            let
+              machineHeader =
+                if useEmoji then
+                  ''
+                    echo ""
+                    echo "🖥️ ${machineName}"
+                  ''
+                else
+                  ''
+                    echo ""
+                    echo "{Machine} ${machineName}"
+                  '';
+            in
+            ''
+              ${machineHeader}
+              ${concatStringsSep "\n" (rawCommands nixosConfiguration)}
+            '';
 
-            allCommands = concatStringsSep "\n\n" (mapAttrsToList verify nixosConfigurationsToVerify);
+          allCommands = concatStringsSep "\n\n" (mapAttrsToList verify nixosConfigurationsToVerify);
 
-          in
-          pkgs.writers.writeBashBin "verify" allCommands;
-      };
+        in
+        {
+          healthchecks = {
+            type = "app";
+            program = pkgs.writers.writeBashBin "verify" allCommands;
+          };
+        }
+        // mapAttrs' (machine: configuration: {
+          name = "healthchecks-${machine}";
+          value = {
+            type = "app";
+            program = pkgs.writers.writeBashBin "verify-${machine}" (verify machine configuration);
+          };
+        }) nixosConfigurationsToVerify;
     };
 
 }
