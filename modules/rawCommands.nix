@@ -5,6 +5,7 @@ with types;
 
   options.healthchecks.rawCommands = mkOption {
     default = { };
+    visible = false;
     description = ''
       This is a raw command and should not be used,
       It's what all other healthchecks end up to be.
