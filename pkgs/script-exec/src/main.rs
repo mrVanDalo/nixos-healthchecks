@@ -111,10 +111,12 @@ fn run_script(script: &str, pretty_printer: PrettyPrinter) {
 
     if result.status.success() {
         pretty_printer.success(duration);
+        exit(0)
     } else {
         pretty_printer.failure(duration);
         println!("Output:\n{}", String::from_utf8_lossy(&result.stdout));
         println!("Error:\n{}", String::from_utf8_lossy(&result.stderr));
+        exit(1)
     }
 }
 
