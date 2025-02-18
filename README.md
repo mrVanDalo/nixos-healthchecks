@@ -1,5 +1,7 @@
 # NixOS health checks
 
+(a.k.a. smoke tests)
+
 NixOS flake to write health checks as options, intended to be written right next
 to the service definitions to verify right after deployment or whenever you like
 if your services are running correctly.
