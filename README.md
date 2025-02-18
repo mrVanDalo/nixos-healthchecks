@@ -8,8 +8,9 @@ if your services are running correctly.
 
 ## How to define checks
 
-You can define checks using the (newly introduced) `healthchecks`
-[NixOS Option](https://search.nixos.org/options).
+`nixos-healthchecks.nixosModules.default` provides the
+[NixOS Option](https://wiki.nixos.org/wiki/NixOS_modules) `healthchecks`, to
+define your service checks.
 
 ### Check the http responses
 
@@ -43,8 +44,8 @@ of the command will only be printed if the **exit code** is not 0.
 
 ## How to set up with flake parts
 
-You have to import the `healthchecks.flakeModule` and the
-`healthchecks.nixosModules.default`.
+You have to import the `nixos-healthchecks.flakeModule` and the
+`nixos-healthchecks.nixosModules.default`.
 
 ```nix
 {
@@ -52,15 +53,15 @@ You have to import the `healthchecks.flakeModule` and the
   inputs = {
     flake-parts.inputs.nixpkgs-lib.follows = "nixpkgs";
     flake-parts.url = "github:hercules-ci/flake-parts";
-    healthchecks.inputs.nixpkgs.follows = "nixpkgs";
-    healthchecks.url = "github:mrvandalo/nixos-healthchecks";
+    nixos-healthchecks.inputs.nixpkgs.follows = "nixpkgs";
+    nixos-healthchecks.url = "github:mrvandalo/nixos-healthchecks";
     nixpkgs.url = "github:nixos/nixpkgs/nixos-unstable";
   };
 
   outputs =
     inputs@{
       flake-parts,
-      healthchecks,
+      nixos-healthchecks,
       nixpkgs,
       self,
     }:
@@ -71,7 +72,7 @@ You have to import the `healthchecks.flakeModule` and the
         systems = [ "x86_64-linux" ]; # feel free to use other systems
 
         # 1. import healthchecks flakeModule
-        imports = [ healthchecks.flakeModule ];
+        imports = [ nixos-healthchecks.flakeModule ];
 
         flake = {
           nixosConfigurations.example = inputs.nixpkgs.lib.nixosSystem {
@@ -80,7 +81,7 @@ You have to import the `healthchecks.flakeModule` and the
               ./configuration.nix
               
               # 2. import healthchecks nixosModule
-              healthchecks.nixosModules.default
+              nixos-healthchecks.nixosModules.default
             ];
           };
         }; 
