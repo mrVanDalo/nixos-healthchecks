@@ -1,0 +1,8 @@
+Usage: nixos-healthchecks [--machine=<name> | --help]
+
+Description:
+  Run healthchecks (a.k.a. smoke tests) defined by the NixOS configuration.
+
+Options:
+  --machine=<name>   Only run tests for the given machine name
+  --help             Show this help message and exit.

@@ -2,11 +2,29 @@
 
 (a.k.a. smoke tests)
 
-NixOS flake to write health checks as options, intended to be written right next
-to the service definitions to verify right after deployment or whenever you like
-if your services are running correctly.
+This project provides a **NixOS flake** to write health checks as NixOS options.
+These checks are designed to be defined alongside service definitions, allowing
+you to verify after deployment (or whenever needed) that your services are
+running correctly.
 
 ![](example.gif)
+
+## How to run
+
+You can run healthchecks right from your repository wih
+
+```shell
+nix run .#healtchecks            # run all machine checks
+nix run .#healtchecks-<machine>  # run machine specific checks
+```
+
+or you can install the healthchecks package, so your `nixosConfigurations` don't
+need to be scanned every run.
+
+```shell
+nixos-healthchecks                     # run all machines
+nixos-healthchecks --machine=<machine> # run machine specific checks
+```
 
 ## How to define checks
 
@@ -44,7 +62,7 @@ healthchecks.localCommand.pythonTest = pkgs.writers.writePython "test" {} ''
 **Failure** or **Success** is decided on **exit code** of the script. The output
 of the command will only be printed if the **exit code** is not 0.
 
-## How to set up with flake parts
+## Installation
 
 You have to import the `nixos-healthchecks.flakeModule` and the
 `nixos-healthchecks.nixosModules.default`.
@@ -84,6 +102,11 @@ You have to import the `nixos-healthchecks.flakeModule` and the
               
               # 2. import healthchecks nixosModule
               nixos-healthchecks.nixosModules.default
+              
+              # 3. (optional) install healthchecks package
+              {
+                environment.systemPackages = [ self.packages.${system}.healthchecks ];
+              }
             ];
           };
         }; 

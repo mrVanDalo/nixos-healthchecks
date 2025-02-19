@@ -62,6 +62,48 @@
         '';
     in
     {
+
+      # Define packages which can be installed so it's fast
+      packages.healthchecks = pkgs.writers.writeBashBin "nixos-healthchecks" ''
+        overall_status=0
+        machine_found=0
+        all_machines=0
+
+        # Help message function
+        show_help() {
+            cat ${toString ./help.txt}
+            exit 0
+        }
+
+        # Parse the optional arguments
+        if [[ $1 == "--help" ]]; then
+            show_help
+        elif [[ $1 == --machine=* ]]; then
+            machine="''${1#--machine=}"
+        else
+            all_machines=1  # If no valid argument is provided, set flag for all machines
+        fi
+
+
+        ${concatStringsSep "\n\n" (
+          mapAttrsToList (machine: configuration: ''
+            # Check each machine
+            if [[ $machine == "${machine}" || $all_machines -eq 1 ]]; then
+                machine_found=1
+                ${verify machine configuration} || overall_status=1
+            fi
+          '') nixosConfigurationsToVerify
+        )}
+
+        # If no machine was found and a specific machine was requested
+        if [[ $machine_found -eq 0 && $all_machines -eq 0 ]]; then
+            echo "Error: Machine '$machine' does not exist."
+            exit 1
+        fi
+
+        exit $overall_status
+      '';
+
       apps =
         {
           healthchecks = {
