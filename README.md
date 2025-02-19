@@ -14,8 +14,8 @@ running correctly.
 You can run healthchecks right from your repository wih
 
 ```shell
-nix run .#healtchecks            # run all machine checks
-nix run .#healtchecks-<machine>  # run machine specific checks
+nix run .#healthchecks            # run all machine checks
+nix run .#healthchecks-<machine>  # run machine specific checks
 ```
 
 or you can install the healthchecks package, so your `nixosConfigurations` don't
