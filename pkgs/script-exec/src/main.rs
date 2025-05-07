@@ -1,7 +1,12 @@
 use clap::Parser;
+use crossterm::{
+    cursor,
+    terminal::{Clear, ClearType},
+    ExecutableCommand,
+};
 use env_logger;
 use log::debug;
-use std::io::{self, Write};
+use std::io::{self, stdout, Write};
 use std::path::Path;
 use std::process::{exit, Command};
 use std::time::{Duration, Instant};
@@ -74,7 +79,11 @@ impl PrettyPrinter {
     /// print success line
     fn success(&self, duration: Duration) {
         let (_, ok, _) = self.exit_code_visualization(self.use_emoji);
-        print!("\r\x1B[2K"); // \x1B[2K clears the entire line
+        let mut stdout = stdout();
+        // Move to the beginning of the line and clear it
+        stdout.execute(cursor::MoveToColumn(0)).unwrap();
+        stdout.execute(Clear(ClearType::CurrentLine)).unwrap();
+
         if self.show_time {
             println!("{} {} [{:.2?}s]", ok, self.title, duration.as_secs_f64());
         } else {
@@ -85,7 +94,11 @@ impl PrettyPrinter {
     /// print failure line
     fn failure(&self, duration: Duration) {
         let (_, _, fail) = self.exit_code_visualization(self.use_emoji);
-        print!("\r\x1B[2K"); // \x1B[2K clears the entire line
+        let mut stdout = stdout();
+        // Move to the beginning of the line and clear it
+        stdout.execute(cursor::MoveToColumn(0)).unwrap();
+        stdout.execute(Clear(ClearType::CurrentLine)).unwrap();
+
         if self.show_time {
             println!("{} {} [{:.2?}s]", fail, self.title, duration.as_secs_f64());
         } else {
