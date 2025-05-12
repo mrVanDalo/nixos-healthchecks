@@ -47,30 +47,30 @@ fn main() {
     let output_manager = Arc::new(OutputManager::new(args.emoji, args.time));
 
     // Create ScriptContainers before spawning threads
-    let script_containers: Vec<ScriptContainer> = args
-        .paths
-        .into_iter()
-        .map(|path| ScriptContainer::new(path))
-        .collect();
 
     let mut handles = vec![];
-    let containers = Arc::new(Mutex::new(script_containers));
+    let scripts = Arc::new(Mutex::new(
+        args.paths
+            .into_iter()
+            .map(|path| Script::new(path))
+            .collect::<Vec<Script>>(),
+    ));
 
     // Spawn worker threads
     for _ in 0..args.jobs {
-        let containers_clone = Arc::clone(&containers);
+        let scripts_mutex = Arc::clone(&scripts);
         let output_manager = Arc::clone(&output_manager);
 
         let handle = thread::spawn(move || loop {
-            let container = {
-                let mut containers = containers_clone.lock().unwrap();
-                if containers.is_empty() {
+            let script = {
+                let mut script_mutex_guard = scripts_mutex.lock().unwrap();
+                if script_mutex_guard.is_empty() {
                     break;
                 }
-                containers.pop().unwrap()
+                script_mutex_guard.pop().unwrap()
             };
 
-            run_single_script(container, output_manager.clone());
+            run_script(script, output_manager.clone());
         });
         handles.push(handle);
     }
@@ -81,24 +81,18 @@ fn main() {
     }
 }
 
-#[derive(Clone)]
-struct RunningTask {
-    title: String,
-}
-
-fn run_single_script(script_container: ScriptContainer, output_manager: Arc<OutputManager>) {
-    let script_path = script_container.path.as_str();
+fn run_script(script: Script, output_manager: Arc<OutputManager>) {
+    let script_path = script.path.as_str();
 
     if !Path::new(script_path).exists() {
         output_manager.send(OutputCommand::Error {
-            title: script_container.title.clone(),
+            title: script.title.clone(),
             message: format!("{} does not exist", script_path),
         });
         return;
     }
 
-    // Add task to running tasks
-    output_manager.send(OutputCommand::AddTask(script_container.title.clone()));
+    output_manager.send(OutputCommand::AddTask(script.title.clone()));
 
     let start = Instant::now();
     let result = Command::new(script_path)
@@ -129,7 +123,7 @@ fn run_single_script(script_container: ScriptContainer, output_manager: Arc<Outp
     }
 
     output_manager.send(OutputCommand::CompleteTask {
-        title: script_container.title.clone(),
+        title: script.title.clone(),
         success: result.status.success(),
         duration,
         output,
@@ -137,7 +131,7 @@ fn run_single_script(script_container: ScriptContainer, output_manager: Arc<Outp
 }
 
 /// containing all the information needed to print user-friendly output.
-struct ScriptContainer {
+struct Script {
     /// title of the execution
     title: String,
 
@@ -145,7 +139,7 @@ struct ScriptContainer {
     path: String,
 }
 
-impl ScriptContainer {
+impl Script {
     fn new(path: String) -> Self {
         let path_obj = Path::new(&path);
         let title = path_obj
@@ -154,10 +148,6 @@ impl ScriptContainer {
             .unwrap_or(&path)
             .to_string();
 
-        Self {
-            title,
-            path,
-        }
+        Self { title, path }
     }
-
 }

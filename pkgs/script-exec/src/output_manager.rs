@@ -1,4 +1,3 @@
-use crate::RunningTask;
 use crossterm::{
     cursor,
     terminal::{Clear, ClearType},
@@ -6,8 +5,8 @@ use crossterm::{
 };
 use std::io::stdout;
 use std::sync::mpsc::{channel, Sender};
-use std::time::Duration;
 use std::thread;
+use std::time::Duration;
 
 #[derive(Clone)]
 pub enum OutputCommand {
@@ -16,7 +15,7 @@ pub enum OutputCommand {
         title: String,
         success: bool,
         duration: Duration,
-        output: Option<String>, // todo remove
+        output: Option<String>,
     },
     Error {
         title: String,
@@ -55,15 +54,12 @@ impl OutputManager {
                         duration,
                         output,
                     } => {
-                        if success {
-                            display_state
-                                .remove_task(&title, pretty_print.success(&title, duration));
+                        let result_output = if success {
+                            pretty_print.success(&title, duration)
                         } else {
-                            display_state.remove_task(
-                                &title,
-                                pretty_print.failure(&title, output, duration),
-                            );
-                        }
+                            pretty_print.failure(&title, output, duration)
+                        };
+                        display_state.remove_task(&title, result_output);
                     }
                     OutputCommand::Error { title, message } => {
                         display_state.add_error_output(pretty_print.failure(
@@ -142,6 +138,10 @@ struct DisplayState {
     running_tasks: Vec<RunningTask>,
 }
 
+struct RunningTask {
+    title: String,
+}
+
 impl DisplayState {
     fn new(pretty_print: PrettyPrint) -> Self {
         Self {
@@ -152,16 +152,14 @@ impl DisplayState {
 
     fn add_task(&mut self, title: String) {
         self.clear_waiting();
-        self.running_tasks.push(RunningTask {
-            title,
-        });
+        self.running_tasks.push(RunningTask { title });
         self.print_waiting()
     }
 
-    fn remove_task(&mut self, title: &str, result_line: String) {
+    fn remove_task(&mut self, title: &str, result_output: String) {
         self.clear_waiting();
         self.running_tasks.retain(|task| task.title != title);
-        println!("{}", result_line);
+        println!("{}", result_output);
         self.print_waiting()
     }
 
