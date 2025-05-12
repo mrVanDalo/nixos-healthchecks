@@ -1,83 +1,14 @@
 use clap::Parser;
-use crossterm::{
-    cursor,
-    terminal::{Clear, ClearType},
-    ExecutableCommand,
-};
 use env_logger;
-use log::debug;
-use std::io::{self, stdout, Write};
 use std::path::Path;
 use std::process::{exit, Command};
 use std::sync::{Arc, Mutex};
 use std::thread;
-use std::time::{Duration, Instant};
+use std::time::Instant;
 
-use std::sync::mpsc::{channel, Receiver, Sender};
-
-#[derive(Clone)]
-enum OutputCommand {
-    AddTask(String),
-    CompleteTask {
-        title: String,
-        success: bool,
-        duration: Duration,
-        output: Option<String>,
-    },
-    Error {
-        title: String,
-        message: String,
-    },
-}
-
-struct OutputManager {
-    sender: Sender<OutputCommand>,
-}
-
-impl OutputManager {
-    fn new() -> Self {
-        let (sender, receiver) = channel();
-
-        // Spawn the output thread
-        thread::spawn(move || {
-            let mut display_state = DisplayState::new();
-            while let Ok(command) = receiver.recv() {
-                match command {
-                    OutputCommand::AddTask(title) => {
-                        display_state.add_task(title);
-                    }
-                    OutputCommand::CompleteTask {
-                        title,
-                        success,
-                        duration,
-                        output,
-                    } => {
-                        let result_line = if success {
-                            format!("✅ {} [{:.2?}s]", title, duration.as_secs_f64())
-                        } else {
-                            let mut lines =
-                                vec![format!("❌ {} [{:.2?}s]", title, duration.as_secs_f64())];
-                            if let Some(output) = output {
-                                lines.push(output);
-                            }
-                            lines.join("\n")
-                        };
-                        display_state.remove_task(&title, result_line);
-                    }
-                    OutputCommand::Error { title, message } => {
-                        display_state.add_error_output(vec![format!("❌ {}", title), message]);
-                    }
-                }
-            }
-        });
-
-        Self { sender }
-    }
-
-    fn send(&self, command: OutputCommand) {
-        self.sender.send(command).unwrap();
-    }
-}
+mod output_manager;
+use output_manager::OutputCommand;
+use output_manager::OutputManager;
 
 #[derive(Parser, Debug)]
 #[command(
@@ -102,6 +33,7 @@ struct Args {
     paths: Vec<String>,
 }
 
+// todo : exit with 1 if one of the scripts does not exit with 0
 fn main() {
     env_logger::init();
     let mut args = Args::parse();
@@ -112,13 +44,13 @@ fn main() {
         exit(1);
     }
 
-    let output_manager = Arc::new(OutputManager::new());
+    let output_manager = Arc::new(OutputManager::new(args.emoji, args.time));
 
     // Create ScriptContainers before spawning threads
     let script_containers: Vec<ScriptContainer> = args
         .paths
         .into_iter()
-        .map(|path| ScriptContainer::new(args.emoji, args.time, path))
+        .map(|path| ScriptContainer::new(path))
         .collect();
 
     let mut handles = vec![];
@@ -152,71 +84,6 @@ fn main() {
 #[derive(Clone)]
 struct RunningTask {
     title: String,
-    start_time: Instant,
-}
-
-struct DisplayState {
-    running_tasks: Vec<RunningTask>,
-    completed_lines: Vec<String>,
-}
-
-impl DisplayState {
-    fn new() -> Self {
-        Self {
-            running_tasks: Vec::new(),
-            completed_lines: Vec::new(),
-        }
-    }
-
-    fn add_task(&mut self, title: String) {
-        self.clear_waiting();
-        self.running_tasks.push(RunningTask {
-            title,
-            start_time: Instant::now(),
-        });
-        self.print_waiting()
-    }
-
-    fn remove_task(&mut self, title: &str, result_line: String) {
-        self.clear_waiting();
-        self.running_tasks.retain(|task| task.title != title);
-        println!("{}", result_line);
-        self.print_waiting()
-    }
-
-    fn clear_waiting(&self) {
-        let mut stdout = stdout();
-
-        // Calculate total lines to clear (completed + running tasks)
-        //let total_lines = self.completed_lines.len() + self.running_tasks.len();
-        let total_lines = self.running_tasks.len();
-
-        // Clear previous output
-        for _ in 0..total_lines {
-            stdout.execute(cursor::MoveUp(1)).unwrap();
-            stdout.execute(Clear(ClearType::CurrentLine)).unwrap();
-        }
-    }
-
-    fn print_waiting(&self) {
-        // Print running tasks
-        for task in &self.running_tasks {
-            let elapsed = task.start_time.elapsed();
-            println!(
-                "⏳ {} (Running for {:.1}s)",
-                task.title,
-                elapsed.as_secs_f64()
-            );
-        }
-    }
-
-    fn add_error_output(&mut self, error_lines: Vec<String>) {
-        self.clear_waiting();
-        for line in error_lines {
-            println!("{}", line);
-        }
-        self.print_waiting()
-    }
 }
 
 fn run_single_script(script_container: ScriptContainer, output_manager: Arc<OutputManager>) {
@@ -274,18 +141,12 @@ struct ScriptContainer {
     /// title of the execution
     title: String,
 
-    /// use emojis in printout or not
-    use_emoji: bool,
-
-    /// show execution time or now
-    show_time: bool,
-
     /// path to the script
     path: String,
 }
 
 impl ScriptContainer {
-    fn new(use_emoji: bool, show_time: bool, path: String) -> Self {
+    fn new(path: String) -> Self {
         let path_obj = Path::new(&path);
         let title = path_obj
             .file_stem()
@@ -295,58 +156,8 @@ impl ScriptContainer {
 
         Self {
             title,
-            use_emoji,
-            show_time,
             path,
         }
     }
 
-    /// decision function on what to print
-    fn exit_code_visualization(
-        &self,
-        use_emoji: bool,
-    ) -> (&'static str, &'static str, &'static str) {
-        if use_emoji {
-            ("⏳", "✅", "❌")
-        } else {
-            ("[Wait]", "[ OK ]", "[Fail]")
-        }
-    }
-
-    /// print waiting line
-    fn waiting(&self) {
-        let (wait, _, _) = self.exit_code_visualization(self.use_emoji);
-        print!("{} {}", wait, self.title);
-        io::stdout().flush().unwrap();
-    }
-
-    /// print success line
-    fn success(&self, duration: Duration) {
-        let (_, ok, _) = self.exit_code_visualization(self.use_emoji);
-        let mut stdout = stdout();
-        // Move to the beginning of the line and clear it
-        stdout.execute(cursor::MoveToColumn(0)).unwrap();
-        stdout.execute(Clear(ClearType::CurrentLine)).unwrap();
-
-        if self.show_time {
-            println!("{} {} [{:.2?}s]", ok, self.title, duration.as_secs_f64());
-        } else {
-            println!("{} {}", ok, self.title);
-        }
-    }
-
-    /// print failure line
-    fn failure(&self, duration: Duration) {
-        let (_, _, fail) = self.exit_code_visualization(self.use_emoji);
-        let mut stdout = stdout();
-        // Move to the beginning of the line and clear it
-        stdout.execute(cursor::MoveToColumn(0)).unwrap();
-        stdout.execute(Clear(ClearType::CurrentLine)).unwrap();
-
-        if self.show_time {
-            println!("{} {} [{:.2?}s]", fail, self.title, duration.as_secs_f64());
-        } else {
-            println!("{} {}", fail, self.title);
-        }
-    }
 }
