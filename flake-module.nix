@@ -23,21 +23,22 @@
         nixosConfiguration:
         let
 
-          commandOptions = nixosConfiguration.options.healthchecks.rawCommands.value;
+          rawCommandOptions = nixosConfiguration.options.healthchecks.rawCommands.value;
 
           commandScripts = mapAttrsToList (
             group: groupConfiguration:
             (mapAttrsToList (
               topic:
-              { title, script }:
-              ''
-                ${scriptExec}/bin/script-exec --title "${title}" ${optionalString useEmoji "--emoji"} --time ${script} || overall_status=1
-              ''
+              { script, ... }: # todo : remove ...
+              script
             ) groupConfiguration)
-          ) commandOptions;
+          ) rawCommandOptions;
 
         in
-        flatten commandScripts;
+        ''
+          ${scriptExec}/bin/script-exec ${optionalString useEmoji "--emoji"} \
+          ${concatStringsSep " " (flatten commandScripts)}
+        '';
 
       verify =
         machine: nixosConfiguration:
@@ -55,10 +56,8 @@
               '';
         in
         pkgs.writers.writeBash "verify-${machine}" ''
-          overall_status=0
           ${machineHeader}
-          ${concatStringsSep "\n" (rawCommands nixosConfiguration)}
-          exit $overall_status
+          ${rawCommands nixosConfiguration}
         '';
     in
     {
