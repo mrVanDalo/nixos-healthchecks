@@ -55,7 +55,7 @@ with types;
           serviceName: interfaceName: host: ports:
           nameValuePair (interfaceName + serviceName) {
             title = "verify ${interfaceName} ports are closed for ${serviceName}";
-            script = pkgs.writers.writeBashBin "verify-${interfaceName}-ports-are-closed-for-${serviceName}" ''
+            script = pkgs.writers.writeBash "verify-${interfaceName}-ports-are-closed-for-${serviceName}" ''
               # Run the rustscan command and capture the output
               output=$(
               ${pkgs.rustscan}/bin/rustscan \

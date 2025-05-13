@@ -43,8 +43,6 @@ fn parse_title_path_pair(s: &str) -> Result<(String, String), String> {
     Ok((parts[0].to_string(), parts[1].to_string()))
 }
 
-
-
 fn main() {
     env_logger::init();
     let args = Args::parse();
@@ -59,7 +57,8 @@ fn main() {
     // Create ScriptContainers before spawning threads
 
     let mut handles = vec![];
-    let mut scripts = args.pairs
+    let mut scripts = args
+        .pairs
         .into_iter()
         .map(|(title, path)| Script { title, path })
         .collect::<Vec<Script>>();

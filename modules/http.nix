@@ -57,7 +57,7 @@ with types;
       let
         script =
           url: responeCode: expectedContent: notExpectedContent: service:
-          pkgs.writers.writePython3Bin "verify-http-for-${service}"
+          pkgs.writers.writePython3 "verify-http-for-${service}"
             {
               libraries = [ pkgs.python3Packages.requests ];
               flakeIgnore = [

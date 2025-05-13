@@ -27,11 +27,7 @@
 
           commandScripts = mapAttrsToList (
             group: groupConfiguration:
-            (mapAttrsToList (
-              topic:
-              { script, ... }: # todo : remove ...
-              lib.getExe script
-            ) groupConfiguration)
+            (mapAttrsToList (topic: { title, script, ... }: "\"${title}\"=${script}") groupConfiguration)
           ) rawCommandOptions;
 
         in
