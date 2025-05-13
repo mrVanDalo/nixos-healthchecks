@@ -9,6 +9,7 @@ use std::time::Instant;
 mod output_manager;
 use output_manager::OutputCommand;
 use output_manager::OutputManager;
+use std::sync::atomic::{AtomicBool, Ordering};
 
 #[derive(Parser, Debug)]
 #[command(
@@ -33,7 +34,6 @@ struct Args {
     paths: Vec<String>,
 }
 
-// todo : exit with 1 if one of the scripts does not exit with 0
 fn main() {
     env_logger::init();
     let mut args = Args::parse();
@@ -56,10 +56,14 @@ fn main() {
             .collect::<Vec<Script>>(),
     ));
 
-    // Spawn worker threads
+    // Near the start of main(), after creating output_manager:
+    let all_successful = Arc::new(AtomicBool::new(true));
+
+    // Modify the thread spawning section to include all_successful:
     for _ in 0..args.jobs {
         let scripts_mutex = Arc::clone(&scripts);
         let output_manager = Arc::clone(&output_manager);
+        let all_successful = Arc::clone(&all_successful);
 
         let handle = thread::spawn(move || loop {
             let script = {
@@ -70,7 +74,7 @@ fn main() {
                 script_mutex_guard.pop().unwrap()
             };
 
-            run_script(script, output_manager.clone());
+            run_script(script, output_manager.clone(), all_successful.clone());
         });
         handles.push(handle);
     }
@@ -79,9 +83,14 @@ fn main() {
     for handle in handles {
         handle.join().unwrap();
     }
+
+    // After all threads complete, exit with appropriate status
+    if !all_successful.load(Ordering::SeqCst) {
+        exit(1);
+    }
 }
 
-fn run_script(script: Script, output_manager: Arc<OutputManager>) {
+fn run_script(script: Script, output_manager: Arc<OutputManager>, all_successful: Arc<AtomicBool>) {
     let script_path = script.path.as_str();
 
     if !Path::new(script_path).exists() {
@@ -89,6 +98,7 @@ fn run_script(script: Script, output_manager: Arc<OutputManager>) {
             title: script.title.clone(),
             message: format!("{} does not exist", script_path),
         });
+        all_successful.store(false, Ordering::SeqCst);
         return;
     }
 
@@ -102,6 +112,7 @@ fn run_script(script: Script, output_manager: Arc<OutputManager>) {
 
     let mut output = None;
     if !result.status.success() {
+        all_successful.store(false, Ordering::SeqCst);
         let mut output_lines = Vec::new();
         if !result.stdout.is_empty() {
             output_lines.push("Output:".to_string());
