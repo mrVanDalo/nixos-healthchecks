@@ -30,16 +30,26 @@ struct Args {
     #[arg(short = 'j', long = "jobs", default_value_t = 3)]
     jobs: usize,
 
-    /// The paths to the scripts
-    paths: Vec<String>,
+    /// The alternating titles and paths to the scripts (title=path)
+    #[arg(value_parser = parse_title_path_pair)]
+    pairs: Vec<(String, String)>,
 }
+
+fn parse_title_path_pair(s: &str) -> Result<(String, String), String> {
+    let parts: Vec<&str> = s.split('=').collect();
+    if parts.len() != 2 {
+        return Err("Each pair must be in the format 'title=path'".to_string());
+    }
+    Ok((parts[0].to_string(), parts[1].to_string()))
+}
+
+
 
 fn main() {
     env_logger::init();
-    let mut args = Args::parse();
-    args.paths.reverse();
+    let args = Args::parse();
 
-    if args.paths.is_empty() {
+    if args.pairs.is_empty() {
         eprintln!("No paths provided");
         exit(1);
     }
@@ -49,12 +59,13 @@ fn main() {
     // Create ScriptContainers before spawning threads
 
     let mut handles = vec![];
-    let scripts = Arc::new(Mutex::new(
-        args.paths
-            .into_iter()
-            .map(|path| Script::new(path))
-            .collect::<Vec<Script>>(),
-    ));
+    let mut scripts = args.pairs
+        .into_iter()
+        .map(|(title, path)| Script { title, path })
+        .collect::<Vec<Script>>();
+    scripts.reverse();
+
+    let scripts = Arc::new(Mutex::new(scripts));
 
     // Near the start of main(), after creating output_manager:
     let all_successful = Arc::new(AtomicBool::new(true));
@@ -151,6 +162,7 @@ struct Script {
 }
 
 impl Script {
+    #[allow(dead_code)]
     fn new(path: String) -> Self {
         let path_obj = Path::new(&path);
         let title = path_obj
