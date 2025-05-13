@@ -30,7 +30,7 @@
             (mapAttrsToList (
               topic:
               { script, ... }: # todo : remove ...
-              script
+              lib.getExe script
             ) groupConfiguration)
           ) rawCommandOptions;
 

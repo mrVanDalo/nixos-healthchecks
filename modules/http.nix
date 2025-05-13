@@ -56,8 +56,8 @@ with types;
     healthchecks.rawCommands.http =
       let
         script =
-          url: responeCode: expectedContent: notExpectedContent:
-          pkgs.writers.writePython3 "test"
+          url: responeCode: expectedContent: notExpectedContent: service:
+          pkgs.writers.writePython3Bin "verify-http-for-${service}"
             {
               libraries = [ pkgs.python3Packages.requests ];
               flakeIgnore = [
@@ -114,7 +114,7 @@ with types;
         }:
         nameValuePair service {
           title = "verify http for ${service}";
-          script = (script url responseCode expectedContent notExpectedContent);
+          script = (script url responseCode expectedContent notExpectedContent service);
         }
 
       ) config.healthchecks.http;
