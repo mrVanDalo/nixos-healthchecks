@@ -44,10 +44,11 @@
         flakeModule = ./flake-module.nix;
         nixosModules.default = {
           imports = [
-            ./modules/rawCommands.nix
-            ./modules/localCommands.nix
-            ./modules/http.nix
             ./modules/closedPorts.nix
+            ./modules/config.nix
+            ./modules/http.nix
+            ./modules/localCommands.nix
+            ./modules/rawCommands.nix
           ];
         };
       };

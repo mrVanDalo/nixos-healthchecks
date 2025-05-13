@@ -23,6 +23,7 @@
         nixosConfiguration:
         let
 
+          max-jobs = nixosConfiguration.options.healthchecks.config.max-jobs.value;
           rawCommandOptions = nixosConfiguration.options.healthchecks.rawCommands.value;
 
           commandScripts = mapAttrsToList (
@@ -33,6 +34,7 @@
         in
         ''
           ${scriptExec}/bin/script-exec ${optionalString useEmoji "--emoji"} \
+          -j ${toString max-jobs} \
           ${concatStringsSep " " (flatten commandScripts)}
         '';
 
