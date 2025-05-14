@@ -7,6 +7,8 @@ use std::thread;
 use std::time::Instant;
 
 mod output_manager;
+mod tests;
+
 use output_manager::OutputCommand;
 use output_manager::OutputManager;
 use std::sync::atomic::{AtomicBool, Ordering};
@@ -173,3 +175,4 @@ impl Script {
         Self { title, path }
     }
 }
+
