@@ -1,0 +1,15 @@
+---
+source: src/tests.rs
+info:
+  program: script-exec
+  args:
+    - "--style=systemd"
+    - success=./examples/success.sh
+---
+success: true
+exit_code: 0
+----- stdout -----
+[38;5;11m[WAIT][39m success
+[1A[2K[38;5;10m[ OK ][39m success [0.01s]
+
+----- stderr -----

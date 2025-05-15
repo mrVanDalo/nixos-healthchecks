@@ -1,0 +1,16 @@
+---
+source: src/tests.rs
+info:
+  program: script-exec
+  args:
+    - failing=./examples/failing.sh
+---
+success: false
+exit_code: 1
+----- stdout -----
+⏳ failing
+[1A[2K❌ failing [0.01s]
+Output:
+should fail
+
+----- stderr -----

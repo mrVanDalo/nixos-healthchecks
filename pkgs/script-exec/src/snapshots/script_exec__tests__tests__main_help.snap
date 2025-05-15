@@ -1,0 +1,25 @@
+---
+source: src/tests.rs
+info:
+  program: script-exec
+  args:
+    - "--help"
+---
+success: true
+exit_code: 0
+----- stdout -----
+print out healthcheck script lines
+
+Usage: script-exec [OPTIONS] [PAIRS]...
+
+Arguments:
+  [PAIRS]...  The alternating titles and paths to the scripts ('title'='path')
+
+Options:
+      --style <STYLE>  The style of output to use [default: emoji] [possible values: emoji, systemd]
+      --time           measure script execution and show it
+  -j, --jobs <JOBS>    Number of parallel jobs [default: 3]
+  -h, --help           Print help
+  -V, --version        Print version
+
+----- stderr -----

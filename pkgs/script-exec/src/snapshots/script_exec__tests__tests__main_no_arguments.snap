@@ -1,0 +1,12 @@
+---
+source: src/tests.rs
+info:
+  program: script-exec
+  args: []
+---
+success: false
+exit_code: 1
+----- stdout -----
+
+----- stderr -----
+No paths provided

@@ -1,0 +1,14 @@
+---
+source: src/tests.rs
+info:
+  program: script-exec
+  args:
+    - success=./examples/success.sh
+---
+success: true
+exit_code: 0
+----- stdout -----
+⏳ success
+[1A[2K✅ success [0.01s]
+
+----- stderr -----

@@ -1,0 +1,17 @@
+---
+source: src/tests.rs
+info:
+  program: script-exec
+  args:
+    - "--style=systemd"
+    - failing=./examples/failing.sh
+---
+success: false
+exit_code: 1
+----- stdout -----
+[38;5;11m[WAIT][39m failing
+[1A[2K[38;5;9m[FAIL][39m failing [0.01s]
+Output:
+should fail
+
+----- stderr -----
