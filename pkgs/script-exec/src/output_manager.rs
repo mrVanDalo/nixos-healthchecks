@@ -1,3 +1,6 @@
+use crate::printer::EmojiPrinter;
+use crate::printer::Printer;
+use crate::printer::SystemdPrinter;
 use crossterm::{
     ExecutableCommand, cursor,
     terminal::{Clear, ClearType},
@@ -29,19 +32,22 @@ pub struct OutputManager {
 // Output Thread manager
 // handles stdout output
 impl OutputManager {
-    pub fn new(use_emoji: bool, show_time: bool) -> Self {
+    pub fn new(printer_type: PrinterTypes) -> Self {
         let (sender, receiver) = channel();
+
+        // Create the printer based on type
+        let printer: Box<dyn Printer + Send> = match printer_type {
+            PrinterTypes::Emoji => Box::new(EmojiPrinter),
+            PrinterTypes::Systemd => Box::new(SystemdPrinter),
+        };
+
         // Spawn the output thread
         thread::spawn(move || {
-            let pretty_print = PrettyPrint {
-                use_emoji,
-                show_time,
+            let mut display_state = DisplayState {
+                running_tasks: Vec::new(),
+                printer,
             };
-            let mut display_state = DisplayState::new(pretty_print.clone());
-            let pretty_print = PrettyPrint {
-                use_emoji,
-                show_time,
-            };
+
             while let Ok(command) = receiver.recv() {
                 match command {
                     OutputCommand::AddTask(title) => {
@@ -54,14 +60,14 @@ impl OutputManager {
                         output,
                     } => {
                         let result_output = if success {
-                            pretty_print.success(&title, duration)
+                            display_state.printer.success(&title, duration)
                         } else {
-                            pretty_print.failure(&title, output, duration)
+                            display_state.printer.failure(&title, output, duration)
                         };
                         display_state.remove_task(&title, result_output);
                     }
                     OutputCommand::Error { title, message } => {
-                        display_state.add_error_output(pretty_print.failure(
+                        display_state.add_error_output(display_state.printer.failure(
                             &title,
                             Some(message),
                             Duration::new(0, 0),
@@ -74,95 +80,52 @@ impl OutputManager {
         Self { sender }
     }
 
-    pub(crate) fn send(&self, command: OutputCommand) {
+    pub fn send(&self, command: OutputCommand) {
         self.sender.send(command).unwrap();
     }
 }
 
-#[derive(Clone)]
-pub struct PrettyPrint {
-    /// use emojis in printout or not
-    use_emoji: bool,
-
-    /// show execution time or now
-    show_time: bool,
-}
-
-impl PrettyPrint {
-    fn exit_code_visualization(&self) -> (&'static str, &'static str, &'static str) {
-        if self.use_emoji {
-            ("⏳", "✅", "❌")
-        } else {
-            ("[Wait]", "[ OK ]", "[Fail]")
-        }
-    }
-
-    /// Return waiting line
-    fn waiting(&self, title: &String) -> String {
-        let (wait, _, _) = self.exit_code_visualization();
-        format!("{} {}", wait, title)
-    }
-
-    /// Return success line
-    fn success(&self, title: &String, duration: Duration) -> String {
-        let (_, ok, _) = self.exit_code_visualization();
-        if self.show_time {
-            format!("{} {} [{:.2?}s]", ok, title, duration.as_secs_f64())
-        } else {
-            format!("{} {}", ok, title)
-        }
-    }
-
-    /// Return failure line
-    fn failure(&self, title: &String, output: Option<String>, duration: Duration) -> String {
-        let (_, _, fail) = self.exit_code_visualization();
-        let mut result = if self.show_time {
-            format!("{} {} [{:.2?}s]", fail, title, duration.as_secs_f64())
-        } else {
-            format!("{} {}", fail, title)
-        };
-
-        if let Some(output) = output {
-            result.push('\n');
-            result.push_str(&output);
-        }
-        result
-    }
-}
-
+// Update DisplayState to use dynamic dispatch
 struct DisplayState {
-    pretty_print: PrettyPrint,
-
-    // running tasks memory to print waiting  lines
     running_tasks: Vec<RunningTask>,
+    printer: Box<dyn Printer + Send>,
 }
 
-struct RunningTask {
-    title: String,
-}
-
+// Update DisplayState implementation
 impl DisplayState {
-    fn new(pretty_print: PrettyPrint) -> Self {
-        Self {
-            pretty_print,
-            running_tasks: Vec::new(),
-        }
-    }
-
     fn add_task(&mut self, title: String) {
         self.clear_waiting();
         self.running_tasks.push(RunningTask { title });
-        self.print_waiting()
+        self.print_waiting();
     }
 
     fn remove_task(&mut self, title: &str, result_output: String) {
         self.clear_waiting();
         self.running_tasks.retain(|task| task.title != title);
         println!("{}", result_output);
-        self.print_waiting()
+        self.print_waiting();
     }
 
+    fn print_waiting(&self) {
+        if !self.printer.print_waiting() {
+            return;
+        }
+        for task in &self.running_tasks {
+            println!("{}", self.printer.waiting(&task.title))
+        }
+    }
+
+    fn add_error_output(&mut self, output: String) {
+        self.clear_waiting();
+        println!("{}", output);
+        self.print_waiting();
+    }
+
+    // clear_waiting remains the same
     fn clear_waiting(&self) {
+        if !self.printer.print_waiting() {
+            return;
+        }
         let mut stdout = stdout();
         let total_lines = self.running_tasks.len();
         for _ in 0..total_lines {
@@ -170,17 +133,15 @@ impl DisplayState {
             stdout.execute(Clear(ClearType::CurrentLine)).unwrap();
         }
     }
+}
 
-    fn print_waiting(&self) {
-        for task in &self.running_tasks {
-            //println!("⏳ {}", task.title);
-            println!("{}", self.pretty_print.waiting(&task.title))
-        }
-    }
+struct RunningTask {
+    title: String,
+}
 
-    fn add_error_output(&mut self, output: String) {
-        self.clear_waiting();
-        println!("{}", output);
-        self.print_waiting()
-    }
+#[derive(clap::ValueEnum, Clone, Copy, PartialEq, Eq, Hash)]
+pub enum PrinterTypes {
+    Emoji,
+    Systemd,
+    // Prometheus,
 }

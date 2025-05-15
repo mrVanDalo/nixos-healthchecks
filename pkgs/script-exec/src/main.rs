@@ -7,32 +7,35 @@ use std::thread;
 use std::time::Instant;
 
 mod output_manager;
+mod printer;
 mod tests;
+
+use crate::output_manager::PrinterTypes;
 
 use output_manager::OutputCommand;
 use output_manager::OutputManager;
 use std::sync::atomic::{AtomicBool, Ordering};
 
-#[derive(Parser, Debug)]
+#[derive(Parser)]
 #[command(
     author = "Ingolf Wagner <contact@ingolf-wagner.de>",
     version = "1.0",
     about = "print out healthcheck script lines"
 )]
 struct Args {
-    /// use emojis to print response code
-    #[arg(long, default_value_t = false)]
-    emoji: bool,
+    /// The style of output to use
+    #[arg(long, value_enum, default_value_t = PrinterTypes::Emoji)]
+    style: PrinterTypes,
 
     /// measure script execution and show it
     #[arg(long, default_value_t = false)]
-    time: bool,
+    time: bool, // todo : deprecated
 
     /// Number of parallel jobs
     #[arg(short = 'j', long = "jobs", default_value_t = 3)]
     jobs: usize,
 
-    /// The alternating titles and paths to the scripts (title=path)
+    /// The alternating titles and paths to the scripts ('title'='path')
     #[arg(value_parser = parse_title_path_pair)]
     pairs: Vec<(String, String)>,
 }
@@ -54,7 +57,7 @@ fn main() {
         exit(1);
     }
 
-    let output_manager = Arc::new(OutputManager::new(args.emoji, args.time));
+    let output_manager = Arc::new(OutputManager::new(args.style));
 
     // Create ScriptContainers before spawning threads
 
@@ -98,7 +101,7 @@ fn main() {
         handle.join().unwrap();
     }
 
-    // After all threads complete, exit with appropriate status
+    // After all threads complete, exit with the appropriate status
     if !all_successful.load(Ordering::SeqCst) {
         exit(1);
     }

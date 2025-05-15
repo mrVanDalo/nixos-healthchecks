@@ -34,11 +34,11 @@ mod tests {
           [PAIRS]...  The alternating titles and paths to the scripts (title=path)
 
         Options:
-              --emoji        use emojis to print response code
-              --time         measure script execution and show it
-          -j, --jobs <JOBS>  Number of parallel jobs [default: 3]
-          -h, --help         Print help
-          -V, --version      Print version
+              --style <STYLE>  The style of output to use [default: emoji] [possible values: emoji, systemd]
+              --time           measure script execution and show it
+          -j, --jobs <JOBS>    Number of parallel jobs [default: 3]
+          -h, --help           Print help
+          -V, --version        Print version
 
         ----- stderr -----
         ");
@@ -50,8 +50,8 @@ mod tests {
         success: true
         exit_code: 0
         ----- stdout -----
-        [Wait] success
-        [1A[2K[ OK ] success
+        ⏳ success
+        [1A[2K✅ success [0.01s]
 
         ----- stderr -----
         ");
@@ -63,8 +63,8 @@ mod tests {
         success: false
         exit_code: 1
         ----- stdout -----
-        [Wait] failing
-        [1A[2K[Fail] failing
+        ⏳ failing
+        [1A[2K❌ failing [0.01s]
         Output:
         should fail
 
@@ -85,27 +85,27 @@ mod tests {
         success: false
         exit_code: 1
         ----- stdout -----
-        [Wait] success
-        [1A[2K[Wait] success
-        [Wait] success
-        [1A[2K[1A[2K[Wait] success
-        [Wait] success
-        [Wait] success
-        [1A[2K[1A[2K[1A[2K[ OK ] success
-        [Wait] fail
-        [1A[2K[Fail] fail
+        ⏳ success
+        [1A[2K⏳ success
+        ⏳ success
+        [1A[2K[1A[2K⏳ success
+        ⏳ success
+        ⏳ success
+        [1A[2K[1A[2K[1A[2K✅ success [0.01s]
+        ⏳ fail
+        [1A[2K❌ fail [0.01s]
         Output:
         should fail
-        [Wait] fail
-        [1A[2K[ OK ] success
-        [Wait] fail
-        [1A[2K[Wait] fail
-        [Wait] fail
-        [1A[2K[1A[2K[Fail] fail
+        ⏳ fail
+        [1A[2K✅ success [1.01s]
+        ⏳ fail
+        [1A[2K⏳ fail
+        ⏳ fail
+        [1A[2K[1A[2K❌ fail [1.01s]
         Output:
         should fail
-        [ OK ] success
-        [Fail] fail
+        ✅ success [2.01s]
+        ❌ fail [2.01s]
         Output:
         should fail
 
