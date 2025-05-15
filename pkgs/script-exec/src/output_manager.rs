@@ -1,10 +1,9 @@
 use crossterm::{
-    cursor,
+    ExecutableCommand, cursor,
     terminal::{Clear, ClearType},
-    ExecutableCommand,
 };
 use std::io::stdout;
-use std::sync::mpsc::{channel, Sender};
+use std::sync::mpsc::{Sender, channel};
 use std::thread;
 use std::time::Duration;
 

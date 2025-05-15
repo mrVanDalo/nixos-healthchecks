@@ -1,4 +1,3 @@
-
 #[cfg(test)]
 mod tests {
     use insta_cmd::assert_cmd_snapshot;
@@ -66,6 +65,47 @@ mod tests {
         ----- stdout -----
         [Wait] failing
         [1A[2K[Fail] failing
+        Output:
+        should fail
+
+        ----- stderr -----
+        ");
+    }
+
+    #[test]
+    fn test_main_multiple() {
+        assert_cmd_snapshot!(cli()
+            .arg("success=./examples/success.sh")
+            .arg("success=./examples/success-1.sh")
+            .arg("success=./examples/success-2.sh")
+            .arg("fail=./examples/failing.sh")
+            .arg("fail=./examples/failing-1.sh")
+            .arg("fail=./examples/failing-2.sh")
+            , @r"
+        success: false
+        exit_code: 1
+        ----- stdout -----
+        [Wait] success
+        [1A[2K[Wait] success
+        [Wait] success
+        [1A[2K[1A[2K[Wait] success
+        [Wait] success
+        [Wait] success
+        [1A[2K[1A[2K[1A[2K[ OK ] success
+        [Wait] fail
+        [1A[2K[Fail] fail
+        Output:
+        should fail
+        [Wait] fail
+        [1A[2K[ OK ] success
+        [Wait] fail
+        [1A[2K[Wait] fail
+        [Wait] fail
+        [1A[2K[1A[2K[Fail] fail
+        Output:
+        should fail
+        [ OK ] success
+        [Fail] fail
         Output:
         should fail
 

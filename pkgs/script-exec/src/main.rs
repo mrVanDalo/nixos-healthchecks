@@ -1,7 +1,7 @@
 use clap::Parser;
 use env_logger;
 use std::path::Path;
-use std::process::{exit, Command};
+use std::process::{Command, exit};
 use std::sync::{Arc, Mutex};
 use std::thread;
 use std::time::Instant;
@@ -77,16 +77,18 @@ fn main() {
         let output_manager = Arc::clone(&output_manager);
         let all_successful = Arc::clone(&all_successful);
 
-        let handle = thread::spawn(move || loop {
-            let script = {
-                let mut script_mutex_guard = scripts_mutex.lock().unwrap();
-                if script_mutex_guard.is_empty() {
-                    break;
-                }
-                script_mutex_guard.pop().unwrap()
-            };
+        let handle = thread::spawn(move || {
+            loop {
+                let script = {
+                    let mut script_mutex_guard = scripts_mutex.lock().unwrap();
+                    if script_mutex_guard.is_empty() {
+                        break;
+                    }
+                    script_mutex_guard.pop().unwrap()
+                };
 
-            run_script(script, output_manager.clone(), all_successful.clone());
+                run_script(script, output_manager.clone(), all_successful.clone());
+            }
         });
         handles.push(handle);
     }
@@ -175,4 +177,3 @@ impl Script {
         Self { title, path }
     }
 }
-
