@@ -1,12 +1,18 @@
-{inputs, ...}: {
+{ inputs, ... }:
+{
   perSystem =
-    { pkgs, self', system, ... }:
     {
-     # allow unfree packages
-          _module.args.pkgs = import inputs.nixpkgs {
-            inherit system;
-            config.allowUnfree = true;
-          };
+      pkgs,
+      self',
+      system,
+      ...
+    }:
+    {
+      # allow unfree packages
+      _module.args.pkgs = import inputs.nixpkgs {
+        inherit system;
+        config.allowUnfree = true;
+      };
 
       devShells = {
         default = pkgs.mkShell {
