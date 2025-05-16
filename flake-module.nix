@@ -33,7 +33,7 @@
 
         in
         ''
-          ${scriptExec}/bin/script-exec ${optionalString useEmoji "--emoji"} \
+          ${scriptExec}/bin/script-exec ${optionalString useEmoji "--style=emoji"} \
           -j ${toString max-jobs} \
           ${concatStringsSep " " (flatten commandScripts)}
         '';
