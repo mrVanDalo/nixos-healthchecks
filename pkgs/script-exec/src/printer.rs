@@ -67,3 +67,36 @@ impl Printer for SystemdPrinter {
         format!("{} {}", "[WAIT]".yellow(), title)
     }
 }
+
+pub struct PrometheusPrinter;
+
+impl Printer for PrometheusPrinter {
+    fn print_waiting(&self) -> bool {
+        false
+    }
+
+    fn success(&self, title: &String, duration: Duration) -> String {
+        format!(
+            r#"nixos_healthcheck_status{{check="{}", status="success"}} 1
+nixos_healthcheck_duration_seconds{{check="{}", status="success"}} {}"#,
+            title,
+            title,
+            duration.as_secs_f64()
+        )
+    }
+
+    fn failure(&self, title: &String, _output: Option<String>, duration: Duration) -> String {
+        let result = format!(
+            r#"nixos_healthcheck_status{{check="{}", status="failure"}} 0
+nixos_healthcheck_duration_seconds{{check="{}", status="failure"}} {}"#,
+            title,
+            title,
+            duration.as_secs_f64()
+        );
+        result
+    }
+
+    fn waiting(&self, _title: &String) -> String {
+        String::new()
+    }
+}

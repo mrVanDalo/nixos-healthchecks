@@ -10,6 +10,6 @@ success: true
 exit_code: 0
 ----- stdout -----
 ⏳ success
-[1A[2K✅ success [0.01s]
+[1A[2K✅ success [<SECONDS>s]
 
 ----- stderr -----

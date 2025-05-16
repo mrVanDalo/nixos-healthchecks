@@ -1,6 +1,6 @@
-use crate::printer::EmojiPrinter;
 use crate::printer::Printer;
 use crate::printer::SystemdPrinter;
+use crate::printer::{EmojiPrinter, PrometheusPrinter};
 use crossterm::{
     ExecutableCommand, cursor,
     terminal::{Clear, ClearType},
@@ -39,6 +39,7 @@ impl OutputManager {
         let printer: Box<dyn Printer + Send> = match printer_type {
             PrinterTypes::Emoji => Box::new(EmojiPrinter),
             PrinterTypes::Systemd => Box::new(SystemdPrinter),
+            PrinterTypes::Prometheus => Box::new(PrometheusPrinter),
         };
 
         // Spawn the output thread
@@ -143,5 +144,5 @@ struct RunningTask {
 pub enum PrinterTypes {
     Emoji,
     Systemd,
-    // Prometheus,
+    Prometheus,
 }

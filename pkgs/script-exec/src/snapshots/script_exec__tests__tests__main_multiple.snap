@@ -19,21 +19,21 @@ exit_code: 1
 [1A[2K[1A[2K⏳ success
 ⏳ success
 ⏳ success
-[1A[2K[1A[2K[1A[2K✅ success [0.01s]
+[1A[2K[1A[2K[1A[2K✅ success [<SECONDS>s]
 ⏳ fail
-[1A[2K❌ fail [0.01s]
+[1A[2K❌ fail [<SECONDS>s]
 Output:
 should fail
 ⏳ fail
-[1A[2K✅ success [1.01s]
+[1A[2K✅ success [<SECONDS>s]
 ⏳ fail
 [1A[2K⏳ fail
 ⏳ fail
-[1A[2K[1A[2K❌ fail [1.01s]
+[1A[2K[1A[2K❌ fail [<SECONDS>s]
 Output:
 should fail
-✅ success [3.01s]
-❌ fail [3.01s]
+✅ success [<SECONDS>s]
+❌ fail [<SECONDS>s]
 Output:
 should fail
 

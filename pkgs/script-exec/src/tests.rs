@@ -8,6 +8,14 @@ mod tests {
         Command::new(get_cargo_bin("script-exec"))
     }
 
+    macro_rules! apply_common_filters {
+    {} => {
+        let mut settings = insta::Settings::clone_current();
+        // Convert seconds to a more readable format.
+        settings.add_filter(r"\d+\.\d+", "<SECONDS>");
+        let _bound = settings.bind_to_scope();
+    } }
+
     #[test]
     fn test_main_no_arguments() {
         assert_cmd_snapshot!(cli());
@@ -20,16 +28,19 @@ mod tests {
 
     #[test]
     fn test_main_success() {
+        apply_common_filters!();
         assert_cmd_snapshot!(cli().arg("success=./examples/success.sh"));
     }
 
     #[test]
     fn test_main_failure() {
+        apply_common_filters!();
         assert_cmd_snapshot!(cli().arg("failing=./examples/failing.sh"));
     }
 
     #[test]
     fn test_main_success_systemd() {
+        apply_common_filters!();
         assert_cmd_snapshot!(
             cli()
                 .arg("--style=systemd")
@@ -39,6 +50,7 @@ mod tests {
 
     #[test]
     fn test_main_failure_systemd() {
+        apply_common_filters!();
         assert_cmd_snapshot!(
             cli()
                 .arg("--style=systemd")
@@ -48,6 +60,7 @@ mod tests {
 
     #[test]
     fn test_main_success_emoji() {
+        apply_common_filters!();
         assert_cmd_snapshot!(
             cli()
                 .arg("--style=emoji")
@@ -57,6 +70,7 @@ mod tests {
 
     #[test]
     fn test_main_failure_emoji() {
+        apply_common_filters!();
         assert_cmd_snapshot!(
             cli()
                 .arg("--style=emoji")
@@ -65,7 +79,28 @@ mod tests {
     }
 
     #[test]
+    fn test_main_success_prometheus() {
+        apply_common_filters!();
+        assert_cmd_snapshot!(
+            cli()
+                .arg("--style=prometheus")
+                .arg("success command=./examples/success.sh")
+        );
+    }
+
+    #[test]
+    fn test_main_failure_prometheus() {
+        apply_common_filters!();
+        assert_cmd_snapshot!(
+            cli()
+                .arg("--style=prometheus")
+                .arg("failing command=./examples/failing.sh")
+        );
+    }
+
+    #[test]
     fn test_main_multiple() {
+        apply_common_filters!();
         assert_cmd_snapshot!(
             cli()
                 .arg("success=./examples/success.sh")

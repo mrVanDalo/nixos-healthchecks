@@ -9,7 +9,7 @@ success: false
 exit_code: 1
 ----- stdout -----
 ⏳ failing
-[1A[2K❌ failing [0.01s]
+[1A[2K❌ failing [<SECONDS>s]
 Output:
 should fail
 

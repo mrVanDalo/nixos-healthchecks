@@ -1,0 +1,15 @@
+---
+source: src/tests.rs
+info:
+  program: script-exec
+  args:
+    - "--style=prometheus"
+    - failing command=./examples/failing.sh
+---
+success: false
+exit_code: 1
+----- stdout -----
+nixos_healthcheck_status{check="failing command", status="failure"} 0
+nixos_healthcheck_duration_seconds{check="failing command", status="failure"} <SECONDS>
+
+----- stderr -----
