@@ -26,6 +26,16 @@ with types;
             URL to  analyze.
           '';
         };
+        headers = mkOption {
+          type = attrsOf str;
+          description = ''
+            HTTP Headers
+          '';
+          example = {
+            "Host" = "example.com";
+          };
+          default = { };
+        };
         responseCode = mkOption {
           type = int;
           default = 200;
@@ -56,15 +66,16 @@ with types;
     healthchecks.rawCommands.http =
       let
         script =
-          url: responeCode: expectedContent: notExpectedContent: service:
+          url: responeCode: expectedContent: notExpectedContent: service: headers:
           pkgs.writers.writePython3 "verify-http-for-${service}"
             {
               libraries = [ pkgs.python3Packages.requests ];
               flakeIgnore = [
+                "E231"
                 "E302"
+                "E303"
                 "E305"
                 "E501"
-                "E303"
               ];
             }
             ''
@@ -76,8 +87,10 @@ with types;
                       return "http://" + url
                   return url
 
+              headers = ${builtins.toJSON headers}
+
               try:
-                  response = requests.get(ensure_http_prefix("${url}"))
+                  response = requests.get(ensure_http_prefix("${url}"), headers=headers)
               except requests.exceptions.RequestException as e:
                   print(f"Request failed: {e}")
                   sys.exit(1)
@@ -111,10 +124,11 @@ with types;
           responseCode,
           expectedContent,
           notExpectedContent,
+          headers,
         }:
         nameValuePair service {
           title = "verify http for ${service}";
-          script = (script url responseCode expectedContent notExpectedContent service);
+          script = (script url responseCode expectedContent notExpectedContent service headers);
         }
 
       ) config.healthchecks.http;
