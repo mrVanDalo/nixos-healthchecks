@@ -43,18 +43,18 @@ with types;
             Expected response code
           '';
         };
-        notExpectedContent = mkOption {
-          type = nullOr str;
-          default = null;
-          description = ''
-            Not expected string in the response
-          '';
-        };
         expectedContent = mkOption {
           type = nullOr str;
           default = null;
           description = ''
-            Expected string in the response
+            Expected string in the response body.
+          '';
+        };
+        notExpectedContent = mkOption {
+          type = nullOr str;
+          default = null;
+          description = ''
+            Not expected string in the response body.
           '';
         };
       };
