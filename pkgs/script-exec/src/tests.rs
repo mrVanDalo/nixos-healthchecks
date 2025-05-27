@@ -89,6 +89,30 @@ mod tests {
     }
 
     #[test]
+    fn test_main_success_prometheus_labels() {
+        apply_common_filters!();
+        assert_cmd_snapshot!(
+            cli()
+                .arg("--style=prometheus")
+                .arg("--label=foo:bar")
+                .arg("success command=./examples/success.sh")
+        );
+    }
+
+    #[test]
+    fn test_main_success_prometheus_multiple_labels() {
+        apply_common_filters!();
+        assert_cmd_snapshot!(
+            cli()
+                .arg("--label=first:test")
+                .arg("--style=prometheus")
+                .arg("--label=foo:bar")
+                .arg("success command=./examples/success.sh")
+                .arg("--label=asdf:test")
+        );
+    }
+
+    #[test]
     fn test_main_failure_prometheus() {
         apply_common_filters!();
         assert_cmd_snapshot!(

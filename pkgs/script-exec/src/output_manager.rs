@@ -5,6 +5,7 @@ use crossterm::{
     ExecutableCommand, cursor,
     terminal::{Clear, ClearType},
 };
+use indexmap::IndexMap;
 use std::io::stdout;
 use std::sync::mpsc::{Sender, channel};
 use std::thread;
@@ -32,14 +33,14 @@ pub struct OutputManager {
 // Output Thread manager
 // handles stdout output
 impl OutputManager {
-    pub fn new(printer_type: PrinterTypes) -> Self {
+    pub fn new(printer_type: PrinterTypes, labels: IndexMap<String, String>) -> Self {
         let (sender, receiver) = channel();
 
         // Create the printer based on type
         let printer: Box<dyn Printer + Send> = match printer_type {
             PrinterTypes::Emoji => Box::new(EmojiPrinter),
             PrinterTypes::Systemd => Box::new(SystemdPrinter),
-            PrinterTypes::Prometheus => Box::new(PrometheusPrinter),
+            PrinterTypes::Prometheus => Box::new(PrometheusPrinter::new(labels)),
         };
 
         // Spawn the output thread

@@ -9,7 +9,7 @@ info:
 success: false
 exit_code: 1
 ----- stdout -----
-nixos_healthcheck_status{check="failing command", status="failure"} 0
-nixos_healthcheck_duration_seconds{check="failing command", status="failure"} <SECONDS>
+nixos_healthcheck_status{ "check"="failing command", "status"="failure" } 0
+nixos_healthcheck_duration_seconds{ "check"="failing command", "status"="failure" } <SECONDS>
 
 ----- stderr -----

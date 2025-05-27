@@ -1,0 +1,18 @@
+---
+source: src/tests.rs
+info:
+  program: script-exec
+  args:
+    - "--label=first:test"
+    - "--style=prometheus"
+    - "--label=foo:bar"
+    - success command=./examples/success.sh
+    - "--label=asdf:test"
+---
+success: true
+exit_code: 0
+----- stdout -----
+nixos_healthcheck_status { "check"="success command", "status"="success", "asdf"="test", "foo"="bar", "first"="test" }  1
+nixos_healthcheck_duration_seconds{ "check"="success command", "status"="success", "asdf"="test", "foo"="bar", "first"="test" } <SECONDS>
+
+----- stderr -----

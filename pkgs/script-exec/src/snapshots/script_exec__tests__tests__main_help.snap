@@ -16,10 +16,11 @@ Arguments:
   [PAIRS]...  The alternating titles and paths to the scripts ('title'='path')
 
 Options:
-      --style <STYLE>  The style of output to use [default: emoji] [possible values: emoji, systemd, prometheus]
-      --time           measure script execution and show it
-  -j, --jobs <JOBS>    Number of parallel jobs [default: 3]
-  -h, --help           Print help
-  -V, --version        Print version
+      --style <STYLE>       The style of output to use [default: emoji] [possible values: emoji, systemd, prometheus]
+      --time                measure script execution and show it
+  -j, --jobs <JOBS>         Number of parallel jobs [default: 3]
+      --label <KEY_VALUES>  label Key-value pairs in the format <key>:<value> added if style is prometheus
+  -h, --help                Print help
+  -V, --version             Print version
 
 ----- stderr -----
