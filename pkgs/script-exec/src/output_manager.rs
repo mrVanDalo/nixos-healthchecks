@@ -25,6 +25,7 @@ pub enum OutputCommand {
         title: String,
         message: String,
     },
+    Terminate,
 }
 
 pub struct OutputManager {
@@ -78,6 +79,9 @@ impl OutputManager {
                             Some(message),
                             Duration::new(0, 0),
                         ));
+                    }
+                    OutputCommand::Terminate => {
+                        break;
                     }
                 }
             }

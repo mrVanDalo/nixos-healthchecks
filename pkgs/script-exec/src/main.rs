@@ -129,6 +129,7 @@ fn main() {
         handle.join().unwrap();
     }
 
+    output_manager.send(OutputCommand::Terminate);
     output_manager_handle.join().unwrap();
 
     // After all threads complete, exit with the appropriate status
