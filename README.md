@@ -114,3 +114,26 @@ You have to import the `nixos-healthchecks.flakeModule` and the
     );
 }
 ```
+
+## Examples
+
+### Prometheus outputs
+
+This flake module provides the `healthchecks-prometheus` package you can use with [telegraf](https://www.influxdata.com/time-series-platform/telegraf/).
+Here is an example
+
+```nix
+{ inputs, system, ... }:
+{
+  services.telegraf.extraConfig = {
+    inputs.exec = {
+      # scrape one machine
+      command = [
+        "${inputs.self.packages.${system}.healthchecks-prometheus}/bin/nixos-healthchecks-prometheus --machine=\"machine-to-test\""
+      ];
+      timeout = "20s"; # what ever works for you
+      data_format = "prometheus";
+    };
+  };
+}
+```
