@@ -22,6 +22,13 @@
         let
 
           max-jobs = nixosConfiguration.options.healthchecks.config.max-jobs.value;
+
+          labels = concatStringsSep " " (
+            mapAttrsToList (
+              label: value: "--label=${label}:${value}"
+            ) nixosConfiguration.options.healthchecks.config.labels.value
+          );
+
           rawCommandOptions = nixosConfiguration.options.healthchecks.rawCommands.value;
 
           commandScripts = mapAttrsToList (
@@ -34,6 +41,7 @@
           ${scriptExec}/bin/script-exec \
           --style=${style} \
           -j ${toString max-jobs} \
+          ${labels} \
           ${concatStringsSep " " (flatten commandScripts)}
         '';
 

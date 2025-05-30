@@ -1,5 +1,6 @@
-{ lib, ... }:
+{ lib, config,... }:
 with lib;
+with types;
 {
 
   options.healthchecks.config = {
@@ -10,6 +11,16 @@ with lib;
       '';
       type = types.int;
     };
+    labels = mkOption {
+      default = {
+        machine = config.networking.hostName;
+      };
+      description = ''
+        Additional labels used in prometheus line output
+      '';
+      type = attrsOf str;
+    };
+
   };
 
 }
