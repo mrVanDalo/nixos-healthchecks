@@ -82,7 +82,10 @@ fn main() {
         exit(1);
     }
 
-    let output_manager = Arc::new(OutputManager::new(args.style, args.get_label_map()));
+    let (output_manager, output_manager_handle) = {
+        let (manager, handle) = OutputManager::new(args.style, args.get_label_map());
+        (Arc::new(manager), handle)
+    };
 
     // Create ScriptContainers before spawning threads
 
@@ -126,9 +129,7 @@ fn main() {
         handle.join().unwrap();
     }
 
-    // todo properly wait for output_manager thread to terminate
-    // sleep for 0.5 seconds
-    thread::sleep(std::time::Duration::from_millis(500));
+    output_manager_handle.join().unwrap();
 
     // After all threads complete, exit with the appropriate status
     if !all_successful.load(Ordering::SeqCst) {

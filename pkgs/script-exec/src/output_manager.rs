@@ -1,6 +1,7 @@
 use crate::printer::Printer;
 use crate::printer::SystemdPrinter;
 use crate::printer::{EmojiPrinter, PrometheusPrinter};
+use crate::thread::JoinHandle;
 use crossterm::{
     ExecutableCommand, cursor,
     terminal::{Clear, ClearType},
@@ -33,7 +34,10 @@ pub struct OutputManager {
 // Output Thread manager
 // handles stdout output
 impl OutputManager {
-    pub fn new(printer_type: PrinterTypes, labels: IndexMap<String, String>) -> Self {
+    pub fn new(
+        printer_type: PrinterTypes,
+        labels: IndexMap<String, String>,
+    ) -> (Self, JoinHandle<()>) {
         let (sender, receiver) = channel();
 
         // Create the printer based on type
@@ -44,7 +48,7 @@ impl OutputManager {
         };
 
         // Spawn the output thread
-        thread::spawn(move || {
+        let handle = thread::spawn(move || {
             let mut display_state = DisplayState {
                 running_tasks: Vec::new(),
                 printer,
@@ -79,7 +83,7 @@ impl OutputManager {
             }
         });
 
-        Self { sender }
+        (Self { sender }, handle)
     }
 
     pub fn send(&self, command: OutputCommand) {

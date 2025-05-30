@@ -119,8 +119,9 @@ You have to import the `nixos-healthchecks.flakeModule` and the
 
 ### Prometheus outputs
 
-This flake module provides the `healthchecks-prometheus` package you can use with [telegraf](https://www.influxdata.com/time-series-platform/telegraf/).
-Here is an example
+This flake module provides the `healthchecks-prometheus` package you can use
+with [telegraf](https://www.influxdata.com/time-series-platform/telegraf/). Here
+is an example
 
 ```nix
 { inputs, system, ... }:
