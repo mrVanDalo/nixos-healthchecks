@@ -15,6 +15,11 @@ with types;
       default = {
         machine = config.networking.hostName;
       };
+      defaultText = lib.literalExpression ''
+        {
+          machine = config.networking.hostName;
+        }
+      '';
       description = ''
         Additional labels used in prometheus line output
       '';
