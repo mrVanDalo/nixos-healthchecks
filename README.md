@@ -7,6 +7,17 @@ These checks are designed to be defined alongside service definitions, allowing
 you to verify after deployment (or whenever needed) that your services are
 running correctly.
 
+## Features
+
+- 📝 Write healthchecks right in the service definition
+- 📊 [Prometheus output](https://prometheus.io/docs/concepts/data_model/) for
+  monitoring integration
+- 🛠️ Define your own scripts using
+  [pkgs.writers](https://wiki.nixos.org/wiki/Nix-writers) in your
+  [preferred language](https://www.python.org/)
+- ⚡ Parallel test execution for faster results
+- 🎨 Fancy emoji CLI UI for better readability
+
 ![](example.gif)
 
 ## How to run
