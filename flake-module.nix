@@ -128,46 +128,45 @@
           };
         };
 
-      apps =
-        {
-          healthchecks = {
-            type = "app";
-            meta.description =
-              let
-                amountOfMachines = length (attrNames nixosConfigurationsToVerify);
-              in
-              "run healthchecks for all ${toString amountOfMachines} defined nixosConfigurations";
-            program = pkgs.writers.writeBashBin "verify" ''
-              overall_status=0
-              ${concatStringsSep "\n\n" (
-                mapAttrsToList (
-                  machine: nixosConfiguration:
-                  "${
-                    verify {
-                      inherit machine nixosConfiguration;
-                      style = "emoji";
-                    }
-                  } || overall_status=1"
-                ) nixosConfigurationsToVerify
-              )}
-              exit $overall_status
-            '';
-          };
-        }
-        // mapAttrs' (machine: nixosConfiguration: {
-          name = "healthchecks-${machine}";
-          value = {
-            type = "app";
-            meta.description = "run healthchecks for ${machine}";
-            program = pkgs.writers.writeBashBin "verify-${machine}" ''
-              ${verify {
-                inherit machine nixosConfiguration;
-                style = "emoji";
-              }}
-              exit $?
-            '';
-          };
-        }) nixosConfigurationsToVerify;
+      apps = {
+        healthchecks = {
+          type = "app";
+          meta.description =
+            let
+              amountOfMachines = length (attrNames nixosConfigurationsToVerify);
+            in
+            "run healthchecks for all ${toString amountOfMachines} defined nixosConfigurations";
+          program = pkgs.writers.writeBashBin "verify" ''
+            overall_status=0
+            ${concatStringsSep "\n\n" (
+              mapAttrsToList (
+                machine: nixosConfiguration:
+                "${
+                  verify {
+                    inherit machine nixosConfiguration;
+                    style = "emoji";
+                  }
+                } || overall_status=1"
+              ) nixosConfigurationsToVerify
+            )}
+            exit $overall_status
+          '';
+        };
+      }
+      // mapAttrs' (machine: nixosConfiguration: {
+        name = "healthchecks-${machine}";
+        value = {
+          type = "app";
+          meta.description = "run healthchecks for ${machine}";
+          program = pkgs.writers.writeBashBin "verify-${machine}" ''
+            ${verify {
+              inherit machine nixosConfiguration;
+              style = "emoji";
+            }}
+            exit $?
+          '';
+        };
+      }) nixosConfigurationsToVerify;
     };
 
 }

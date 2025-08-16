@@ -1,4 +1,4 @@
-{ config, ... }:
+{ pkgs, config, ... }:
 {
   # check if nextcloud is up and running
   healthchecks.http.nextcloud = {
@@ -14,7 +14,9 @@
 
   # (incomplete) nextcloud configuration
   services.nextcloud.enable = true;
-  services.nextcloud.config.dbtype = "psql";
+  services.nextcloud.config.dbtype = "pgsql";
+  services.nextcloud.hostName = "example";
   services.postgresql.enable = true;
 
+services.nextcloud.config.adminpassFile = pkgs.writeText "password" "secret";
 }

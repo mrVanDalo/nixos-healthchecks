@@ -10,4 +10,8 @@
     ./syncthing.nix
   ];
 
+  fileSystems."/".device = "/dev/hda";
+  boot.loader.grub.device = "/dev/hdb";
+  system.stateVersion = "25.05";
+
 }
